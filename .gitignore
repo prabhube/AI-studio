@@ -1,0 +1,72 @@
+# ============================================================
+# Prabhu AI Studio — .gitignore
+# ============================================================
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.venv/
+venv/
+env/
+
+# Alembic
+backend/alembic/versions/*.pyc
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.vercel/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# Media (AI generated content — can be large)
+backend/media/
+media/
+
+# Models (multi-GB files)
+models/
+
+# Logs
+*.log
+logs/
+
+# OS
+desktop.ini

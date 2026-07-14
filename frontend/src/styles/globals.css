@@ -1,0 +1,300 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------------------------------------------------------
+   Base layer — CSS custom properties (design tokens)
+   Applied on :root so Tailwind utilities can reference them.
+   All colors use HSL channels without the "hsl()" wrapper so that
+   Tailwind's opacity modifier (e.g. bg-background/50) works correctly.
+   -------------------------------------------------------------------------- */
+@layer base {
+  :root {
+    /* Surface colors */
+    --background: 240 10% 3.9%;
+    --foreground: 220 15% 95%;
+
+    /* Card / popover */
+    --card: 240 8% 7%;
+    --card-foreground: 220 15% 95%;
+
+    /* Primary (brand indigo) */
+    --primary: 238 83% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 240 5% 14%;
+    --secondary-foreground: 220 15% 80%;
+
+    /* Muted */
+    --muted: 240 5% 18%;
+    --muted-foreground: 240 5% 50%;
+
+    /* Accent */
+    --accent: 240 5% 18%;
+    --accent-foreground: 220 15% 95%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border / input / ring */
+    --border: 240 5% 18%;
+    --input: 240 5% 14%;
+    --ring: 238 83% 67%;
+
+    /* Radius */
+    --radius: 0.625rem;
+
+    /* Sidebar dimensions */
+    --sidebar-width: 256px;
+    --sidebar-width-collapsed: 68px;
+
+    /* Header height */
+    --header-height: 60px;
+  }
+
+  /* Apply border to all elements using the design token */
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-surface text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Focus styles — remove default outline, use our ring */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Custom scrollbar — subtle and dark */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/10;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-brand-700/50 text-white;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Component layer — reusable class compositions
+   Define recurring visual patterns once, reference them in JSX.
+   -------------------------------------------------------------------------- */
+@layer components {
+
+  /* ---- Glassmorphism card ---- */
+  .glass-card {
+    @apply rounded-xl border border-white/8 bg-white/4 backdrop-blur-md;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-200 hover:border-white/12 hover:bg-white/6;
+  }
+
+  /* ---- Surface cards ---- */
+  .surface-card {
+    @apply rounded-xl border border-white/6 bg-surface-50;
+  }
+
+  /* ---- Gradient text ---- */
+  .gradient-text {
+    @apply bg-gradient-brand bg-clip-text text-transparent;
+  }
+
+  /* ---- Buttons ---- */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white
+           shadow-lg shadow-brand-900/30
+           transition-all duration-150
+           hover:bg-brand-500 hover:shadow-brand-800/40
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface
+           active:scale-[0.98]
+           disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white
+           transition-all duration-150
+           hover:border-white/20 hover:bg-white/10
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20
+           active:scale-[0.98]
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           px-4 py-2.5 text-sm font-medium text-white/60
+           transition-all duration-150
+           hover:bg-white/5 hover:text-white
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20
+           active:scale-[0.98]
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           bg-red-600 px-4 py-2.5 text-sm font-semibold text-white
+           transition-all duration-150
+           hover:bg-red-500
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface
+           active:scale-[0.98]
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* ---- Icon button ---- */
+  .btn-icon {
+    @apply inline-flex items-center justify-center rounded-lg p-2
+           text-white/50 transition-all duration-150
+           hover:bg-white/5 hover:text-white
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20
+           active:scale-95;
+  }
+
+  /* ---- Form inputs ---- */
+  .input-field {
+    @apply w-full rounded-lg border border-white/8 bg-white/4
+           px-4 py-2.5 text-sm text-white placeholder-white/25
+           transition-all duration-150
+           focus:border-brand-500 focus:bg-white/6 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .textarea-field {
+    @apply input-field resize-none;
+  }
+
+  .select-field {
+    @apply input-field cursor-pointer appearance-none;
+  }
+
+  .label {
+    @apply block text-xs font-medium text-white/50 mb-1.5;
+  }
+
+  /* ---- Badges / pills ---- */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
+  }
+
+  .badge-default {
+    @apply badge bg-white/8 text-white/60;
+  }
+
+  .badge-primary {
+    @apply badge bg-brand-500/15 text-brand-300;
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-500/15 text-emerald-300;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-500/15 text-amber-300;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-500/15 text-red-300;
+  }
+
+  .badge-info {
+    @apply badge bg-sky-500/15 text-sky-300;
+  }
+
+  /* ---- Status dot ---- */
+  .status-dot {
+    @apply inline-block h-2 w-2 rounded-full;
+  }
+  .status-dot-success { @apply status-dot bg-emerald-400; }
+  .status-dot-warning { @apply status-dot bg-amber-400; }
+  .status-dot-danger  { @apply status-dot bg-red-400; }
+  .status-dot-muted   { @apply status-dot bg-white/20; }
+
+  /* ---- Divider ---- */
+  .divider {
+    @apply border-t border-white/6;
+  }
+
+  /* ---- Sidebar nav item ---- */
+  .nav-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium
+           transition-all duration-150;
+  }
+
+  .nav-item-active {
+    @apply nav-item bg-brand-600/15 text-brand-300;
+  }
+
+  .nav-item-inactive {
+    @apply nav-item text-white/45 hover:bg-white/5 hover:text-white;
+  }
+
+  /* ---- Skeleton loading ---- */
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-white/5;
+  }
+
+  /* ---- Page section header ---- */
+  .section-header {
+    @apply mb-6 flex items-center justify-between;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold text-white;
+  }
+
+  .section-subtitle {
+    @apply mt-0.5 text-sm text-white/45;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Utility layer — one-off utilities not in Tailwind's generated set
+   -------------------------------------------------------------------------- */
+@layer utilities {
+  /* Thin scrollbar variant for small containers */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  /* Hide scrollbar visually while keeping scroll functionality */
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Glow effects */
+  .glow-brand {
+    box-shadow: 0 0 20px theme("colors.brand.700" / 0.4);
+  }
+}

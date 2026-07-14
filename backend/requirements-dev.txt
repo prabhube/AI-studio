@@ -1,0 +1,28 @@
+# ============================================================
+# Prabhu AI Studio — Backend Development Dependencies
+# ============================================================
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+httpx==0.28.1
+factory-boy==3.3.1
+faker==33.1.0
+
+# In-memory SQLite driver for unit tests (replaces PostgreSQL)
+aiosqlite==0.20.0
+
+# Code Quality
+ruff==0.8.4
+mypy==1.13.0
+black==24.10.0
+
+# Type Stubs
+types-redis==4.6.0.20241004
+types-passlib==1.7.7.20240819
+
+# Debug
+ipdb==0.13.13
+rich==13.9.4

@@ -1,0 +1,107 @@
+# ============================================================
+# Prabhu AI Studio — Docker Compose Development Override
+#
+# WHY a separate override file?
+#   docker-compose.yml contains production-safe defaults.
+#   This file is automatically merged by Docker Compose in
+#   development and adds dev-only conveniences:
+#     - Volume mounts for hot reload
+#     - Exposed debug ports
+#     - Relaxed health check intervals
+#     - Flower (Celery monitoring UI)
+#
+#   In production, this file is NEVER loaded.
+#   CI uses: docker compose -f docker-compose.yml up
+# ============================================================
+
+version: "3.9"
+
+services:
+  backend:
+    environment:
+      - APP_ENV=development
+      - APP_DEBUG=true
+      - DB_ECHO=true
+    volumes:
+      - ./backend:/app
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /app/app
+      --log-level debug
+
+  frontend:
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+  postgres:
+    healthcheck:
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    healthcheck:
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ----------------------------
+  # Celery Worker
+  # WHY: Background tasks for AI generation (image, video, audio)
+  #      run asynchronously. The worker polls Redis for jobs.
+  # ----------------------------
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: prabhu_celery_worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - ./backend/media:/app/media
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - prabhu_network
+    command: >
+      celery -A app.tasks.celery_app worker
+      --loglevel=info
+      --concurrency=2
+      --queues=video,image,audio,default
+
+  # ----------------------------
+  # Flower — Celery task monitoring dashboard
+  # WHY: Visual dashboard to inspect queued, active, and
+  #      completed tasks during development.
+  # URL: http://localhost:5555
+  # ----------------------------
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: prabhu_flower
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - prabhu_network
+    command: celery -A app.tasks.celery_app flower --port=5555
