@@ -120,6 +120,15 @@ class LLMSettings(BaseSettings):
     context_length: int = Field(default=4096, alias="LLM_CONTEXT_LENGTH")
     n_threads: int = Field(default=4, alias="LLM_THREADS")
 
+    # Prompt analysis — structured extraction wants near-deterministic output,
+    # so it overrides the conversational defaults above.
+    analyzer_temperature: float = Field(
+        default=0.2, alias="LLM_ANALYZER_TEMPERATURE"
+    )
+    analyzer_max_tokens: int = Field(
+        default=1024, alias="LLM_ANALYZER_MAX_TOKENS"
+    )
+
 
 class ImageSettings(BaseSettings):
     """Image generation provider configuration."""

@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* -------------------------------------------------------------------------
    Base layer — CSS custom properties (design tokens)
    Applied on :root so Tailwind utilities can reference them.
@@ -105,16 +106,16 @@
 
   /* ---- Glassmorphism card ---- */
   .glass-card {
-    @apply rounded-xl border border-white/8 bg-white/4 backdrop-blur-md;
+    @apply rounded-xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-md;
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-200 hover:border-white/12 hover:bg-white/6;
+    @apply glass-card transition-all duration-200 hover:border-white/[0.12] hover:bg-white/[0.06];
   }
 
   /* ---- Surface cards ---- */
   .surface-card {
-    @apply rounded-xl border border-white/6 bg-surface-50;
+    @apply rounded-xl border border-white/[0.06] bg-surface-50;
   }
 
   /* ---- Gradient text ---- */
@@ -175,10 +176,10 @@
 
   /* ---- Form inputs ---- */
   .input-field {
-    @apply w-full rounded-lg border border-white/8 bg-white/4
+    @apply w-full rounded-lg border border-white/[0.08] bg-white/[0.04]
            px-4 py-2.5 text-sm text-white placeholder-white/25
            transition-all duration-150
-           focus:border-brand-500 focus:bg-white/6 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+           focus:border-brand-500 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-brand-500/20
            disabled:cursor-not-allowed disabled:opacity-50;
   }
 
@@ -200,27 +201,27 @@
   }
 
   .badge-default {
-    @apply badge bg-white/8 text-white/60;
+    @apply badge bg-white/[0.08] text-white/60;
   }
 
   .badge-primary {
-    @apply badge bg-brand-500/15 text-brand-300;
+    @apply badge bg-brand-500/[0.15] text-brand-300;
   }
 
   .badge-success {
-    @apply badge bg-emerald-500/15 text-emerald-300;
+    @apply badge bg-emerald-500/[0.15] text-emerald-300;
   }
 
   .badge-warning {
-    @apply badge bg-amber-500/15 text-amber-300;
+    @apply badge bg-amber-500/[0.15] text-amber-300;
   }
 
   .badge-danger {
-    @apply badge bg-red-500/15 text-red-300;
+    @apply badge bg-red-500/[0.15] text-red-300;
   }
 
   .badge-info {
-    @apply badge bg-sky-500/15 text-sky-300;
+    @apply badge bg-sky-500/[0.15] text-sky-300;
   }
 
   /* ---- Status dot ---- */
@@ -244,11 +245,11 @@
   }
 
   .nav-item-active {
-    @apply nav-item bg-brand-600/15 text-brand-300;
+    @apply nav-item bg-brand-600/[0.15] text-brand-300;
   }
 
   .nav-item-inactive {
-    @apply nav-item text-white/45 hover:bg-white/5 hover:text-white;
+    @apply nav-item text-white/[0.45] hover:bg-white/5 hover:text-white;
   }
 
   /* ---- Skeleton loading ---- */
@@ -266,7 +267,7 @@
   }
 
   .section-subtitle {
-    @apply mt-0.5 text-sm text-white/45;
+    @apply mt-0.5 text-sm text-white/[0.45];
   }
 }
 

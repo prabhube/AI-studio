@@ -23,7 +23,7 @@ Adding a new provider:
     Zero other changes required.
 """
 
-from functools import lru_cache
+import asyncio
 
 from app.core.config import get_settings
 from app.core.exceptions import ProviderNotConfiguredError
@@ -32,12 +32,21 @@ from app.providers.base.llm_provider import LLMProvider
 
 logger = get_logger(__name__)
 
+# Module-level singleton — the provider (and its loaded model) is expensive,
+# so we build it once per process.
 _provider_instance: LLMProvider | None = None
+# Serialises concurrent first-time initialisation so we never build two
+# providers (and two model handles) in a race.
+_init_lock = asyncio.Lock()
 
 
 async def get_llm_provider() -> LLMProvider:
     """
     Return the singleton LLM provider configured in settings.
+
+    The concrete implementation is selected purely from ``settings.llm.provider``
+    (the ``LLM_PROVIDER`` env var). Business logic depends only on the
+    ``LLMProvider`` protocol, so switching providers never touches services.
 
     Raises:
         ProviderNotConfiguredError: If LLM_PROVIDER is "none" or unknown.
@@ -47,33 +56,46 @@ async def get_llm_provider() -> LLMProvider:
     if _provider_instance is not None:
         return _provider_instance
 
-    settings = get_settings()
-    provider_name = settings.llm.provider
+    async with _init_lock:
+        # Another coroutine may have initialised while we awaited the lock.
+        if _provider_instance is not None:
+            return _provider_instance
 
-    if provider_name == "gemma":
-        from app.providers.llm.gemma_provider import GemmaProvider
-        _provider_instance = GemmaProvider(settings.llm)
+        settings = get_settings()
+        provider_name = settings.llm.provider
 
-    elif provider_name == "llama":
-        from app.providers.llm.llama_provider import LlamaProvider
-        _provider_instance = LlamaProvider(settings.llm)
+        if provider_name == "gemma":
+            from app.providers.llm.gemma_provider import GemmaProvider
 
-    elif provider_name == "none":
-        raise ProviderNotConfiguredError("llm")
+            _provider_instance = GemmaProvider(settings.llm)
 
-    else:
-        raise ProviderNotConfiguredError(f"llm:{provider_name}")
+        elif provider_name == "llama":
+            from app.providers.llm.llama_provider import LlamaProvider
 
-    logger.info("llm_provider_initialized", provider=provider_name)
-    return _provider_instance
+            _provider_instance = LlamaProvider(settings.llm)
+
+        elif provider_name == "none":
+            raise ProviderNotConfiguredError("llm")
+
+        else:
+            raise ProviderNotConfiguredError(f"llm:{provider_name}")
+
+        logger.info("llm_provider_selected", provider=provider_name)
+        return _provider_instance
 
 
 def reset_llm_provider() -> None:
     """
-    Reset the singleton for testing purposes.
+    Reset the singleton, releasing any loaded model and inference threads.
 
-    WHY: Tests need to inject different providers without
-         restarting the process.
+    WHY: Tests need to inject different providers without restarting the
+         process. Providers may hold a thread pool and a multi-GB model
+         handle, so we close them before dropping the reference.
     """
     global _provider_instance
+
+    close = getattr(_provider_instance, "close", None)
+    if callable(close):
+        close()
+
     _provider_instance = None

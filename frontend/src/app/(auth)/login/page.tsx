@@ -2,17 +2,53 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff } from "lucide-react";
-import type { Metadata } from "next";
+import { Eye, EyeOff, Zap } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { ApiError } from "@/lib/api-client";
+import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+
+// ---------------------------------------------------------------------------
+// Demo login — bypasses the backend for local development/demo
+// ---------------------------------------------------------------------------
+
+function useDemoLogin() {
+  const router = useRouter();
+  const store = useAuthStore();
+
+  return () => {
+    // Inject a mock user and a fake (non-expiring) token so the auth guard passes
+    store.setTokens({
+      accessToken: "demo_access_token_local_only",
+      refreshToken: "demo_refresh_token_local_only",
+      expiresIn: 86400 * 365, // 1 year
+      issuedAt: Date.now(),
+    });
+    store.setUser({
+      id: "00000000-0000-0000-0000-000000000001",
+      email: "demo@prabhuai.studio",
+      username: "demo_user",
+      full_name: "Demo User",
+      avatar_url: null,
+      role: "admin",
+      is_active: true,
+      is_superuser: true,
+      email_verified: true,
+      oauth_provider: null,
+      last_login_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    router.push("/dashboard");
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Validation schema
@@ -70,6 +106,7 @@ function GoogleSignInButton({ onClick, loading }: { onClick: () => void; loading
 
 export default function LoginPage() {
   const { login, loginWithGoogle, isLoading } = useAuth();
+  const demoLogin = useDemoLogin();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -82,15 +119,32 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  const [isNetworkError, setIsNetworkError] = useState(false);
+
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null);
+    setIsNetworkError(false);
     try {
       await login(values);
     } catch (err) {
       if (err instanceof ApiError) {
-        setServerError(err.message);
+        // Detect network/connection errors (backend not running)
+        const msg = err.message ?? "";
+        if (
+          msg.toLowerCase().includes("network") ||
+          msg.toLowerCase().includes("connection") ||
+          msg.toLowerCase().includes("fetch") ||
+          err.status === 0
+        ) {
+          setIsNetworkError(true);
+          setServerError(null);
+        } else {
+          setServerError(msg);
+        }
+      } else if (err instanceof TypeError && (err as TypeError).message.includes("fetch")) {
+        setIsNetworkError(true);
       } else {
-        setServerError("Something went wrong. Please try again.");
+        setIsNetworkError(true); // treat any unknown error as backend-down
       }
     }
   };
@@ -119,14 +173,44 @@ export default function LoginPage() {
         </p>
       </div>
 
+      {/* ── Demo Login (no backend required) ── */}
+      <div className="rounded-xl border border-brand-500/30 bg-brand-600/[0.08] p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Zap className="h-4 w-4 text-brand-400" />
+          <span className="text-sm font-semibold text-brand-300">Demo Mode</span>
+          <span className="ml-auto rounded-full bg-brand-500/20 px-2 py-0.5 text-xs text-brand-400">
+            No backend needed
+          </span>
+        </div>
+        <p className="text-xs text-white/50">
+          Skip login and explore the full 15-step AI pipeline UI instantly.
+          Backend API calls will show errors until the server is running.
+        </p>
+        <button
+          type="button"
+          onClick={demoLogin}
+          className="w-full rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold py-2.5 transition-colors flex items-center justify-center gap-2"
+        >
+          <Zap className="h-4 w-4" />
+          Enter as Demo User
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 border-t border-white/[0.08]" />
+        <span className="text-xs text-white/25">or sign in with account</span>
+        <div className="flex-1 border-t border-white/[0.08]" />
+      </div>
+
       {/* Google sign-in */}
       <GoogleSignInButton onClick={handleGoogleLogin} loading={googleLoading} />
 
       {/* Divider */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 border-t border-white/8" />
+        <div className="flex-1 border-t border-white/[0.08]" />
         <span className="text-xs text-white/25">or continue with email</span>
-        <div className="flex-1 border-t border-white/8" />
+        <div className="flex-1 border-t border-white/[0.08]" />
       </div>
 
       {/* Email / password form */}
@@ -163,10 +247,34 @@ export default function LoginPage() {
           {...register("password")}
         />
 
-        {/* Server error */}
-        {serverError && (
+        {/* Network error — backend not running */}
+        {isNetworkError && (
           <div
-            className="rounded-lg border border-red-500/20 bg-red-500/8 px-4 py-3 text-sm text-red-400"
+            className="rounded-xl border border-amber-500/30 bg-amber-500/[0.08] p-4 space-y-3"
+            role="alert"
+          >
+            <p className="text-sm font-semibold text-amber-300">
+              ⚠️ Backend server is not running
+            </p>
+            <p className="text-xs text-amber-200/70">
+              The API at <span className="font-mono">localhost:8000</span> is unreachable.
+              Use Demo Login to explore the full UI without a server.
+            </p>
+            <button
+              type="button"
+              onClick={demoLogin}
+              className="w-full rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold py-2.5 transition-colors flex items-center justify-center gap-2"
+            >
+              <Zap className="h-4 w-4" />
+              Enter as Demo User — Skip Login
+            </button>
+          </div>
+        )}
+
+        {/* Server error (auth failure, not network) */}
+        {serverError && !isNetworkError && (
+          <div
+            className="rounded-lg border border-red-500/20 bg-red-500/[0.08] px-4 py-3 text-sm text-red-400"
             role="alert"
           >
             {serverError}
@@ -183,6 +291,14 @@ export default function LoginPage() {
           Sign in
         </Button>
       </form>
+
+      {/* Backend credentials note */}
+      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-xs text-white/40 space-y-1">
+        <p className="font-medium text-white/50">Backend credentials (when server is running):</p>
+        <p>Email: <span className="text-white/70 font-mono">admin@prabhuai.studio</span></p>
+        <p>Password: <span className="text-white/70 font-mono">Admin@123456</span></p>
+        <p className="text-white/30 pt-1">Register a new account if the backend is connected.</p>
+      </div>
 
       <p className="text-center text-xs text-white/25">
         By signing in you agree to our{" "}

@@ -14,7 +14,17 @@ Versioning strategy:
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import audio, auth, health, images, projects, users, videos
+from app.api.v1.endpoints import (
+    audio,
+    auth,
+    health,
+    images,
+    pipeline,
+    projects,
+    prompts,
+    users,
+    videos,
+)
 
 api_router = APIRouter()
 
@@ -25,6 +35,8 @@ api_router.include_router(auth.router)
 # ---- Authenticated ----
 api_router.include_router(users.router)
 api_router.include_router(projects.router)
+api_router.include_router(prompts.router)
+api_router.include_router(pipeline.router)
 api_router.include_router(videos.router)
 api_router.include_router(images.router)
 api_router.include_router(audio.router)

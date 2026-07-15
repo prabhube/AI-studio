@@ -24,6 +24,7 @@ import {
   Sparkles,
   LogOut,
   User,
+  Clapperboard,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -48,6 +49,12 @@ const NAV_ITEMS: NavItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     exact: true,
+  },
+  {
+    label: "Create Video",
+    href: "/dashboard/create",
+    icon: Clapperboard,
+    badge: "AI",
   },
   {
     label: "Projects",
@@ -113,13 +120,13 @@ function NavLink({ item, collapsed, onClick }: NavLinkProps) {
         <span className="truncate">{item.label}</span>
       )}
       {!collapsed && item.badge && (
-        <span className="ml-auto rounded-md bg-brand-600/15 px-1.5 py-0.5 text-xs font-medium text-brand-400">
+        <span className="ml-auto rounded-md bg-brand-600/[0.15] px-1.5 py-0.5 text-xs font-medium text-brand-400">
           {item.badge}
         </span>
       )}
       {/* Tooltip when collapsed */}
       {collapsed && (
-        <span className="pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-md border border-white/8 bg-surface-100 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+        <span className="pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-md border border-white/[0.08] bg-surface-100 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
           {item.label}
           {item.badge && (
             <span className="ml-1.5 text-brand-400">{item.badge}</span>
